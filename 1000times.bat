@@ -46,7 +46,7 @@ FOR /L %%i IN (1,1,1000) DO (
 
     echo Stopping stagentsvc...
     sc stop stagentsvc
-    timeout /t 30 /nobreak 
+    timeout /t 45 /nobreak 
     taskkill /f /im msedge.exe >nul
 
 
