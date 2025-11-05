@@ -39,12 +39,3 @@ endlocal
 exit
 
 
-:: Loop through and open each site
-for /L %%i in (1,1,20) do (
-    call set url=%%site%%i%%
-    start msedge !url!
-    timeout /t 1 >nul
-)
-
-endlocal
-exit
