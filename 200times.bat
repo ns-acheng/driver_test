@@ -28,25 +28,26 @@ FOR /L %%i IN (1,1,200) DO (
     del /F /Q "C:\tmp\*" 
     rem  start "" "TTD.exe" -attach %PID% -out "%TTD_LOG%" -noUI -accepteula
 
-    start 10tab.bat
+    start 20tab.bat
     echo ping and CURL
     ping www.careweb.nl
     ping www.amazon.com
     curl -v www.tripadvisor.com/Restaurants-g293913-zfp10954-Taipei.html
 	curl -v smallpdf.com
+	timeout /t 50 /nobreak >nul
     
     rem Calculate range size
-	set "max=100"
-	set "min=30"
+	set "max=50"
+	set "min=10"
 	set /a range=max - min + 1
 	set /a rand=%RANDOM% %% range + min
 	echo wait for %rand% sec
-    timeout /t %rand% /nobreak 
+    timeout /t %rand% /nobreak >nul 
 
     echo Stopping stagentsvc...
     sc stop stagentsvc
     timeout /t 3 /nobreak 
-    taskkill /f /im msedge.exe
+    taskkill /f /im msedge.exe >nul
 
 
     rem  Check for .dmp file
