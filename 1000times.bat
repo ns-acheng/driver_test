@@ -33,7 +33,7 @@ FOR /L %%i IN (1,1,%loopCount%) DO (
     del /F /Q "C:\tmp\*" 
     rem  start "" "TTD.exe" -attach %PID% -out "%TTD_LOG%" -noUI -accepteula
 
-    start 20tab.bat
+    start 30tab.bat
     echo ping and CURL
     ping www.careweb.nl
     ping www.amazon.com
@@ -41,11 +41,11 @@ FOR /L %%i IN (1,1,%loopCount%) DO (
 	curl -v smallpdf.com
 	timeout /t 50 /nobreak >nul
     
-    rem Calculate range size
-	set "max=50"
+    rem give an extra random waiting
+	set "max=60"
 	set "min=10"
-	set /a range=max - min + 1
-	set /a rand=%RANDOM% %% range + min
+    set /a range=max - min + 1
+    set /a rand=%RANDOM% % range + min
 	echo wait for %rand% sec
     timeout /t %rand% /nobreak >nul 
 
@@ -83,4 +83,4 @@ FOR /L %%i IN (1,1,%loopCount%) DO (
 echo All iterations complete.
 
 ENDLOCAL
-pause
+pauses
