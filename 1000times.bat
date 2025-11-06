@@ -69,12 +69,11 @@ FOR /L %%i IN (1,1,%loopCount%) DO (
         echo Dump in iteration %%i >> C:\_dump\note.txt
         exit /b 1
     )
-	dir "C:\NSClient-Debug\*" /b >nul 2>&1
-    if not errorlevel 1 (
+    IF EXIST "c:\NSClient-Debug\*.*" (
         echo Dump file found in NSClient-Debug folder. Exiting loop.
         echo Dump in iteration %%i >> C:\_dump\note.txt
         exit /b 1
-    )
+    )	
 	
 	echo Iteration %%i ends =====================
 )
