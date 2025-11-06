@@ -44,16 +44,15 @@ FOR /L %%i IN (1,1,%loopCount%) DO (
     rem give an extra random waiting
 	set "max=60"
 	set "min=10"
-    set /a range=max - min + 1
-    set /a rand=%RANDOM% % range + min
+    set /a "range=max - min + 1"
+    set /a "rand=%RANDOM% %% range + min"
 	echo wait for %rand% sec
     timeout /t %rand% /nobreak >nul 
 
     echo Stopping stagentsvc...
     sc stop stagentsvc
-    timeout /t 45 /nobreak 
+    timeout /t 40 /nobreak 
     taskkill /f /im msedge.exe >nul
-
 
     rem  Check for .dmp file
     echo Checking for dump files...
@@ -69,10 +68,9 @@ FOR /L %%i IN (1,1,%loopCount%) DO (
         echo Dump in iteration %%i >> C:\_dump\note.txt
         exit /b 1
     )
-    IF EXIST "c:\NSClient-Debug\*.*" (
+    dir "c:\NSClient-Debug\*.*" /A-D /B >nul 2>&1
+    if not errorlevel 1 (
         echo Dump file found in NSClient-Debug folder. Exiting loop.
-        echo Dump in iteration %%i >> C:\_dump\note.txt
-        exit /b 1
     )	
 	
 	echo Iteration %%i ends =====================
