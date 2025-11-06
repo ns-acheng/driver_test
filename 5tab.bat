@@ -2,11 +2,11 @@
 setlocal enabledelayedexpansion
 
 :: Define websites
-set site1=https://www.amazon.com
-set site2=https://www.facebook.com
-set site3=https://www.youtube.com
-set site4=https://www.twitter.com
-set site5=https://www.instagram.com
+set site1=https://www.nytimes.com
+set site2=https://www.cnn.com
+set site3=https://www.bbc.com
+set site4=https://www.imdb.com
+set site5=https://www.pinterest.com
 
 
 :: Loop through and open each site
