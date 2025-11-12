@@ -37,6 +37,9 @@ def main_loop():
             logger.info(f"Waiting for {INTERVAL_SECONDS} seconds...")
             sleep_ex(INTERVAL_SECONDS)
 
+        except KeyboardInterrupt:
+            logger.info("Loop stopped by user. Exiting.")
+            return
         except Exception as e:
             logger.exception("An error occurred:")
             logger.info(f"Retrying in {INTERVAL_SECONDS} seconds...")
