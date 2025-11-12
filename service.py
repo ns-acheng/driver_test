@@ -2,8 +2,13 @@ import win32serviceutil
 import win32service
 import pywintypes
 import time
+from enum import Enum
 
-# Map service status codes to human-readable strings
+class _Action(Enum):
+    START = "start"
+    STOP = "stop"
+
+
 STATUS_MAP = {
     win32service.SERVICE_STOPPED: "STOPPED",
     win32service.SERVICE_START_PENDING: "START_PENDING",
@@ -16,93 +21,81 @@ STATUS_MAP = {
 
 def get_service_status(service_name: str, machine: str = None) -> str:
     try:
-        # QueryServiceStatus returns a tuple
-        # The 2nd element (index 1) is a tuple of (serviceType, serviceState, ...)
         status_tuple = win32serviceutil.QueryServiceStatus(service_name, machine)
-        status_code = status_tuple[1]  # Get the serviceState code
+        status_code = status_tuple[1]
         return STATUS_MAP.get(status_code, f"UNKNOWN ({status_code})")
     
     except pywintypes.error as e:
-        if e.winerror == 1060:  # ERROR_SERVICE_DOES_NOT_EXIST
+        if e.winerror == 1060:
             return "NOT_FOUND"
-        elif e.winerror == 5:   # ERROR_ACCESS_DENIED
+        elif e.winerror == 5:
             print(f"Error: Access Denied. Try running this script as an Administrator.")
         raise e
 
 def start_service(service_name: str, machine: str = None, timeout: int = 30) -> bool:
+    return _control_service(service_name, _Action.START, machine, timeout)
+
+def stop_service(service_name: str, machine: str = None, timeout: int = 30) -> bool:
+    return _control_service(service_name, _Action.STOP, machine, timeout)
+
+
+def _control_service(service_name: str, action: _Action, machine: str = None, timeout: int = 30) -> bool:
+    
+    if action == _Action.START:
+        action_str = "Starting"
+        service_func = win32serviceutil.StartService
+        target_status = STATUS_MAP[win32service.SERVICE_RUNNING]
+        pending_status = STATUS_MAP[win32service.SERVICE_START_PENDING]
+        already_done_error_code = 1056
+    elif action == _Action.STOP:
+        action_str = "Stopping"
+        service_func = win32serviceutil.StopService
+        target_status = STATUS_MAP[win32service.SERVICE_STOPPED]
+        pending_status = STATUS_MAP[win32service.SERVICE_STOP_PENDING]
+        already_done_error_code = 1062
+    else:
+        print(f"Error: Invalid internal action '{action}' specified.")
+        return False
+
     try:
         current_status = get_service_status(service_name, machine)
-        if current_status == "RUNNING":
-            print(f"Service '{service_name}' is already running.")
+        
+        if current_status == target_status:
+            print(f"Service '{service_name}' is already {target_status.lower()}.")
             return True
         
         if current_status == "NOT_FOUND":
             print(f"Error: Service '{service_name}' does not exist.")
             return False
 
-        print(f"Starting service '{service_name}'...")
-        win32serviceutil.StartService(service_name, machine)
+        print(f"{action_str} service '{service_name}'...")
+        service_func(service_name, machine)
 
         start_time = time.time()
         while time.time() - start_time < timeout:
             current_status = get_service_status(service_name, machine)
-            if current_status == "RUNNING":
-                print(f"Service '{service_name}' started successfully.")
+            
+            if current_status == target_status:
+                print(f"Service '{service_name}' {action.value}ed successfully.")
                 return True
-            elif current_status not in ("START_PENDING"):
+            
+            if current_status != pending_status:
                 print(f"Error: Service '{service_name}' entered an unexpected state: {current_status}")
                 return False
+                
             time.sleep(0.5)
 
-        print(f"Error: Timeout. Service '{service_name}' did not start within {timeout}s.")
+        print(f"Error: Timeout. Service '{service_name}' did not {action.value} within {timeout}s.")
         return False
 
     except pywintypes.error as e:
-        if e.winerror == 1056: # ERROR_SERVICE_ALREADY_RUNNING
-             print(f"Service '{service_name}' is already running.")
-             return True
-        elif e.winerror == 5: # ERROR_ACCESS_DENIED
-            print(f"Error starting '{service_name}': Access Denied. Run as Administrator.")
-        else:
-            print(f"Error starting '{service_name}': {e}")
-        return False
-
-def stop_service(service_name: str, machine: str = None, timeout: int = 30) -> bool:
-    try:
-        current_status = get_service_status(service_name, machine)
-        if current_status == "STOPPED":
-            print(f"Service '{service_name}' is already stopped.")
+        if e.winerror == already_done_error_code:
+            print(f"Service '{service_name}' is already {target_status.lower()}.")
             return True
-
-        if current_status == "NOT_FOUND":
-            print(f"Error: Service '{service_name}' does not exist.")
-            return False
-
-        print(f"Stopping service '{service_name}'...")
-        win32serviceutil.StopService(service_name, machine)
-
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            current_status = get_service_status(service_name, machine)
-            if current_status == "STOPPED":
-                print(f"Service '{service_name}' stopped successfully.")
-                return True
-            elif current_status not in ("STOP_PENDING"):
-                print(f"Error: Service '{service_name}' entered an unexpected state: {current_status}")
-                return False
-            time.sleep(0.5)
-
-        print(f"Error: Timeout. Service '{service_name}' did not stop within {timeout}s.")
-        return False
-
-    except pywintypes.error as e:
-        if e.winerror == 1062: # ERROR_SERVICE_NOT_ACTIVE
-             print(f"Service '{service_name}' is already stopped.")
-             return True
-        elif e.winerror == 5: # ERROR_ACCESS_DENIED
-            print(f"Error stopping '{service_name}': Access Denied. Run as Administrator.")
+        elif e.winerror == 5:
+            print(f"Error {action_str.lower()} '{service_name}': Access Denied. Run as Administrator.")
         else:
-            print(f"Error stopping '{service_name}': {e}")
+            print(f"Error {action_str.lower()} '{service_name}': {e}")
         return False
 
 
@@ -111,8 +104,18 @@ if __name__ == "__main__":
     print(f"--- Testing {__file__} ---")
     
     try:
-        status = get_service_status(SERVICE_TO_TEST)
-        print(f"Status of '{SERVICE_TO_TEST}': {status}")
+        print(f"\nAttempting to STOP '{SERVICE_TO_TEST}'...")
+        if stop_service(SERVICE_TO_TEST):
+            status = get_service_status(SERVICE_TO_TEST)
+            print(f"Current status of '{SERVICE_TO_TEST}': {status}")
+
+        time.sleep(2)
+        
+        print(f"\nAttempting to START '{SERVICE_TO_TEST}'...")
+        if start_service(SERVICE_TO_TEST):
+            status = get_service_status(SERVICE_TO_TEST)
+            print(f"Current status of '{SERVICE_TO_TEST}': {status}")
+            
     except Exception as e:
         print(f"Error testing: {e}")
         print("Please ensure you are running this script as an Administrator.")

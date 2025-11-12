@@ -10,7 +10,7 @@ def setup_logging():
         logger.handlers.clear()
 
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_filename = f'service_control_{timestamp}.log'
+    log_filename = f'stress_test_{timestamp}.log'
 
     formatter = logging.Formatter(
         '%(asctime)s - %(levelname)s - %(message)s',
