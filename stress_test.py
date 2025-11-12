@@ -2,7 +2,7 @@ import sys
 from util_service import start_service, stop_service, get_service_status
 from util_log import setup_logging
 from util_time import sleep_ex
-from util_subprocess import run_batch_file
+from util_subprocess import run_batch, run_powershell
 
 SERVICE_NAME = "stagentsvc"
 TARGET_LOOP = 1000
@@ -37,7 +37,7 @@ def main_loop():
                 sleep_ex(5)
 
             logger.info(f"Running batch file to open 20 tabs...")
-            run_batch_file("20tab.bat")
+            run_batch("20tab.bat")
             sleep_ex(LONG_SEC)
 
             logger.info(f"Attempting to STOP '{SERVICE_NAME}'...")
@@ -49,6 +49,7 @@ def main_loop():
                 break
             loop_count += 1
             sleep_ex(STD_SEC)
+            run_powershell("close_msedge.ps1")
 
         except KeyboardInterrupt:
             logger.info("Loop stopped by user. Exiting.")
