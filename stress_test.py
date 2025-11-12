@@ -1,37 +1,16 @@
 import time
 import sys
-import logging
-from datetime import datetime
 from service import start_service, stop_service, get_service_status
+from log import setup_logging
 
 SERVICE_NAME = "stagentsvc"
 INTERVAL_SECONDS = 60
 
-logger = logging.getLogger()
-
-def setup_logging():
-    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_filename = f'service_control_{timestamp}.log'
-
-    logger.setLevel(logging.INFO)
-
-    formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-
-    file_handler = logging.FileHandler(log_filename)
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(formatter)
-
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-
-    logger.addHandler(file_handler)
-    logger.addHandler(console_handler)
-
-    return log_filename
+try:
+    logger, log_file = setup_logging()
+except Exception as e:
+    print(f"Critical error during logging setup: {e}", file=sys.stderr)
+    sys.exit(1)
 
 def main_loop():
     logger.info("--- Service Control Loop ---")
@@ -65,12 +44,8 @@ def main_loop():
 
 if __name__ == "__main__":
     try:
-        log_file = setup_logging()
         logger.info(f"Logging initialized. Log file: {log_file}")
         main_loop()
     except KeyboardInterrupt:
         logger.info("Loop stopped by user. Exiting.")
         sys.exit(0)
-    except Exception as e:
-        print(f"Critical error during setup: {e}", file=sys.stderr)
-        sys.exit(1)
