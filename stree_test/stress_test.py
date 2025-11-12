@@ -27,12 +27,16 @@ def main_loop():
         try:
             logger.info(f"=== Iteration {loop_count} ===")
             logger.info(f"Attempting to START '{SERVICE_NAME}'...")
-            start_service(SERVICE_NAME)
             current_status = get_service_status(SERVICE_NAME)
             logger.info(f"Current status: {current_status}")
-            logger.info(f"Waiting for {STD_SEC} seconds...")
-            sleep_ex(STD_SEC)
+            if current_status != "RUNNING":
+                start_service(SERVICE_NAME)
+                logger.info(f"Waiting for {STD_SEC} seconds...")
+                sleep_ex(STD_SEC)
+            else:
+                sleep_ex(5)
 
+            logger.info(f"Running batch file to open 20 tabs...")
             run_batch_file("../20tab.bat")
             sleep_ex(LONG_SEC)
 
