@@ -37,7 +37,7 @@ def main_loop():
                 sleep_ex(5)
 
             logger.info(f"Running batch file to open 20 tabs...")
-            run_batch_file("../20tab.bat")
+            run_batch_file("20tab.bat")
             sleep_ex(LONG_SEC)
 
             logger.info(f"Attempting to STOP '{SERVICE_NAME}'...")
