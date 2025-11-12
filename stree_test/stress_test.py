@@ -1,7 +1,7 @@
-import time
 import sys
-from service import start_service, stop_service, get_service_status
-from log import setup_logging
+from util_service import start_service, stop_service, get_service_status
+from util_log import setup_logging
+from util_time import sleep_ex
 
 SERVICE_NAME = "stagentsvc"
 INTERVAL_SECONDS = 60
@@ -27,7 +27,7 @@ def main_loop():
             logger.info(f"Current status: {current_status}")
             
             logger.info(f"Waiting for {INTERVAL_SECONDS} seconds...")
-            time.sleep(INTERVAL_SECONDS)
+            sleep_ex(INTERVAL_SECONDS)
 
             logger.info(f"Attempting to STOP '{SERVICE_NAME}'...")
             stop_service(SERVICE_NAME)
@@ -35,12 +35,12 @@ def main_loop():
             logger.info(f"Current status: {current_status}")
 
             logger.info(f"Waiting for {INTERVAL_SECONDS} seconds...")
-            time.sleep(INTERVAL_SECONDS)
+            sleep_ex(INTERVAL_SECONDS)
 
         except Exception as e:
             logger.exception("An error occurred:")
             logger.info(f"Retrying in {INTERVAL_SECONDS} seconds...")
-            time.sleep(INTERVAL_SECONDS)
+            sleep_ex(INTERVAL_SECONDS)
 
 if __name__ == "__main__":
     try:
