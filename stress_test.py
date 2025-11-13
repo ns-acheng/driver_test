@@ -20,7 +20,7 @@ except Exception as e:
 def load_config():  
     defaults = {
         "loop_times": 1000,
-        "stop_service_per_n_run": 1
+        "stop_svc_per_n_run": 1
     }
 
     try:
@@ -29,12 +29,12 @@ def load_config():
         logger.info(f"Loaded configuration from {CONFIG_FILE}")
         
         loop_times = config.get('loop_times', defaults['loop_times'])
-        stop_service_per_n_run = config.get('stop_service_per_n_run', defaults['stop_service_per_n_run'])
+        stop_svc_per_n_run = config.get('stop_svc_per_n_run', defaults['stop_svc_per_n_run'])
 
     except FileNotFoundError:
         logger.warning(f"{CONFIG_FILE} not found. Using default values.")
         loop_times = defaults['loop_times']
-        stop_service_per_n_run = defaults['stop_service_per_n_run']
+        stop_svc_per_n_run = defaults['stop_svc_per_n_run']
     except json.JSONDecodeError:
         logger.error(f"Error decoding {CONFIG_FILE}. Please check for valid JSON. Exiting.")
         sys.exit(1)
@@ -43,19 +43,19 @@ def load_config():
         sys.exit(1)
 
     if not isinstance(loop_times, int) or loop_times <= 0:
-        logger.error(f"'loop_times' must be a positive integer. Got: {loop_times}. Exiting.")
+        logger.error(f"invalid 'loop_times'. Exiting.")
         sys.exit(1)
         
-    if not isinstance(stop_service_per_n_run, int) or stop_service_per_n_run < 0:
-        logger.error(f"'stop_service_per_n_run' must be a non-negative integer. Got: {stop_service_per_n_run}. Exiting.")
+    if not isinstance(stop_svc_per_n_run, int) or stop_svc_per_n_run < 0:
+        logger.error(f"invalid 'stop_svc_per_n_run'. Exiting.")
         sys.exit(1)
 
-    logger.info(f"Configuration set: loop_times = {loop_times}, stop_service_per_n_run = {stop_service_per_n_run}")
-    return loop_times, stop_service_per_n_run
+    logger.info(f"Configuration set: loop_times = {loop_times}, stop_svc_per_n_run = {stop_svc_per_n_run}")
+    return loop_times, stop_svc_per_n_run
 
-def main_loop(loop_times, stop_service_per_n_run):
+def main_loop(loop_times, stop_svc_per_n_run):
     logger.info(f"--- Start Testing. Total iterations: {loop_times} ---")
-    logger.info(f"Stop service every {stop_service_per_n_run} run(s) (0 = never)")
+    logger.info(f"Stop service every {stop_svc_per_n_run} run(s) (0 = never)")
     logger.info("Press Ctrl+C to stop the loop.")
     logger.info("-" * 30)
 
@@ -76,7 +76,7 @@ def main_loop(loop_times, stop_service_per_n_run):
             run_batch("10tab.bat")
             sleep_ex(LONG_SEC)
 
-            if stop_service_per_n_run > 0 and loop_count % stop_service_per_n_run == 0:
+            if stop_svc_per_n_run > 0 and loop_count % stop_svc_per_n_run == 0:
                 logger.info(f"Attempting to STOP '{SERVICE_NAME}'")
                 stop_service(SERVICE_NAME)
                 current_status = get_service_status(SERVICE_NAME)
@@ -100,8 +100,8 @@ def main_loop(loop_times, stop_service_per_n_run):
 if __name__ == "__main__":
     try:
         logger.info(f"Logging initialized. Log file: {log_file}")
-        loop_times, stop_service_per_n_run = load_config()
-        main_loop(loop_times, stop_service_per_n_run)
+        loop_times, stop_svc_per_n_run = load_config()
+        main_loop(loop_times, stop_svc_per_n_run)
     except KeyboardInterrupt:
         logger.info("Loop stopped by user. Exiting.")
         sys.exit(0)
