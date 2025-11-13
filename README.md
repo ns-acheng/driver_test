@@ -1,5 +1,7 @@
 ﻿# driver_test
 
+The use case is to repeat NSClient user mode services during multiple msedge tabs open.
+
 Open cmd.exe with administrator
 Run as
 
