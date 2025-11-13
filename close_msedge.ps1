@@ -1,1 +1,0 @@
-Get-Process msedge | ForEach-Object { $_.CloseMainWindow() | Out-Null }
